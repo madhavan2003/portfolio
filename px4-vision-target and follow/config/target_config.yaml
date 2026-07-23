@@ -1,0 +1,30 @@
+# Tuning for the search_and_follow mission mode.
+#
+# The target CLASS itself is deliberately not set here -- it comes from the
+# mission JSON step's `target_class` field so it can change per-mission
+# without touching this file or restarting anything (see mission/mission_example.json).
+# `detector.default_target_classes` below is only used by tests/mock_demo.py
+# when running the vision module standalone with no mission JSON at hand.
+
+detector:
+  model_path: "yolov8n.pt"
+  confidence_threshold: 0.5
+  default_target_classes: ["person"]
+
+follow_controller:
+  desired_bbox_height_ratio: 0.35   # standoff distance setpoint: target should fill ~35% of frame height
+  kp_yaw: 1.2
+  kp_vertical: 0.8
+  kp_forward: 1.5
+  max_yaw_rate: 0.6                 # rad/s
+  max_vertical_speed: 0.5           # m/s
+  max_forward_speed: 1.5            # m/s
+  deadband_center_norm: 0.05
+  deadband_size_ratio: 0.03
+  ema_alpha: 0.4
+  lost_target_timeout_s: 2.0
+  control_rate_hz: 10.0
+
+snapshot:
+  output_dir: "snapshots"
+  operator_endpoint: null           # e.g. "https://ops.example.com/hooks/target-acquired"

@@ -1,0 +1,5 @@
+[
+  {"action": "takeoff", "altitude_m": 8},
+  {"action": "search_and_follow", "target_class": "car", "return_after_seconds": 45},
+  {"action": "land"}
+]

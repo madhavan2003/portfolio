@@ -1,0 +1,5 @@
+[
+  {"action": "takeoff", "altitude_m": 5},
+  {"action": "search_and_follow", "target_class": "person", "return_after_seconds": 30},
+  {"action": "land"}
+]

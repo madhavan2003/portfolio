@@ -1,0 +1,28 @@
+# Installable via pip, needed for the vision/ module and the no-sim demo/tests.
+ultralytics>=8.1.0
+PyYAML>=6.0
+pytest>=8.0.0
+
+# Both pinned <2 / <5, not just floors: ros-humble-cv-bridge (apt) is a
+# compiled extension built against Ubuntu 22.04's stock NumPy 1.x headers.
+# NumPy 2.0 broke C-API ABI compat, so an unpinned `ultralytics` OR
+# `opencv-python` install (neither has an upper bound on its own) resolves to
+# NumPy 2.x today and cv_bridge dies at import with "AttributeError:
+# _ARRAY_API not found" -- confirmed opencv-python>=5.0 forces numpy>=2 as a
+# hard dependency, so the opencv-python bound has to move in lockstep with
+# the numpy one. This must stay <2 / <5 in whichever single environment runs
+# ros2_nodes/ -- don't try to isolate cv_bridge and ultralytics into separate
+# envs, that just re-adds the apt-vs-pip problem one level up (you'd need
+# --system-site-packages either way).
+opencv-python>=4.9.0,<5
+numpy<2
+
+# NOT pip-installable -- these come from your ROS 2 Humble install / a colcon
+# workspace and are only needed to run ros2_nodes/ against the real sim:
+#   rclpy, sensor_msgs      -> apt: ros-humble-desktop (or ros-base + ros-humble-rclpy)
+#   cv_bridge               -> apt: ros-humble-cv-bridge
+#   px4_msgs                -> colcon build from https://github.com/PX4/px4_msgs
+#                              (branch matching your PX4-Autopilot version)
+#   ros_gz_bridge           -> build from source (GZ_VERSION=harmonic), NOT
+#                              apt ros-humble-ros-gz-bridge -- that's built
+#                              against Fortress, not the Harmonic PX4 uses.

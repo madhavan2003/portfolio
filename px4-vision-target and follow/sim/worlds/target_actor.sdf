@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<!--
+  A spawnable target for the drone to detect/follow.
+
+  This is a plain red box, not a photorealistic person/car mesh, for one
+  practical reason: it needs no internet fetch and no Gazebo-version-specific
+  fuel model name to work, so it will spawn reliably regardless of your setup.
+  The honest tradeoff: YOLOv8 (trained on COCO) will NOT reliably classify a
+  bare box as "person" or "car" -- it's here as a placement/pose reference and
+  as a stand-in you can re-skin.
+
+  For an actual "person"/"car" detection demo you have three options, cheapest
+  first:
+    1. Fastest to verify, zero Gazebo dependency: point a webcam (or this
+       repo's tests/mock_demo.py) at a real person, or a video/photo of one.
+       This exercises the exact same vision/ code the sim path uses.
+    2. Swap this model's <visual><geometry> for a fuel-hosted humanoid mesh,
+       e.g. replace this whole <model> block with:
+         <include>
+           <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Walking person</uri>
+           <pose>3 0 0.9 0 0 0</pose>
+         </include>
+       (needs internet on first load so gz-sim can download + cache the mesh;
+       exact model name availability depends on your Fuel/Gazebo version).
+    3. Texture-map this box with a printed photo of a person/car as its
+       material, which is enough for YOLO in a lot of cases without needing
+       any external mesh fetch at all.
+
+  Spawn into an already-running world without editing the world file:
+      gz service -s /world/default/create \
+        --reqtype gz.msgs.EntityFactory --reptype gz.msgs.Boolean \
+        --timeout 1000 --req 'sdf_filename: "sim/worlds/target_actor.sdf"'
+
+  (replace "default" with your actual world name if different -- check with
+  `gz topic -l | grep /world/`)
+-->
+<sdf version="1.9">
+  <model name="target_person">
+    <static>true</static>
+    <pose>3 0 0.9 0 0 0</pose>
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <box><size>0.5 0.5 1.8</size></box>
+        </geometry>
+        <material>
+          <ambient>0.8 0.1 0.1 1</ambient>
+          <diffuse>0.8 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+      <collision name="collision">
+        <geometry>
+          <box><size>0.5 0.5 1.8</size></box>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
