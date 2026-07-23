@@ -1,0 +1,21 @@
+# --- LLM planning ---------------------------------------------------------------
+# No client library needed: llm_planner/planner.py talks to a locally-running
+# Ollama server over plain HTTP via the stdlib (urllib.request) -- see
+# README.md for installing Ollama itself (a separate binary, not a pip
+# package) and docs/design_decisions.md for why Ollama replaced the
+# Anthropic API here.
+
+# --- Schema validation --------------------------------------------------------
+jsonschema>=4.23
+
+# --- Simulation ---------------------------------------------------------------
+# gym-pybullet-drones is not published on PyPI, so it's installed directly
+# from GitHub. Pinned to a specific commit (not the `main` branch, and not
+# the old `v1.0.0` tag -- that tag predates the Gymnasium-based rewrite
+# (5-tuple env.step() returns, CtrlAviary/DSLPIDControl/Logger APIs) that
+# sim/sim_runner.py is written against) so builds stay reproducible even as
+# upstream changes. See docs/design_decisions.md for how this was verified.
+gym-pybullet-drones @ git+https://github.com/utiasDSL/gym-pybullet-drones.git@9bc12bc583fa3b28807b2f90a8cadf09fb06e1ff
+
+# --- Testing --------------------------------------------------------------------
+pytest>=8.0

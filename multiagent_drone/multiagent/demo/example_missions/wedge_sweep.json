@@ -1,0 +1,28 @@
+{
+  "mission_id": "wedge-sweep-north-01",
+  "operator_prompt": "You three sweep this area in a wedge formation",
+  "num_agents": 3,
+  "formation": {
+    "type": "wedge",
+    "spacing_m": 8
+  },
+  "task": {
+    "type": "area_sweep",
+    "area_of_interest": [
+      { "x": 0, "y": 0 },
+      { "x": 120, "y": 0 },
+      { "x": 120, "y": 60 },
+      { "x": 0, "y": 60 }
+    ],
+    "regroup_point": null
+  },
+  "altitude_m": 15,
+  "speed_mps": 4,
+  "loop_count": 1,
+  "safety": {
+    "max_altitude_m": 40,
+    "max_speed_mps": 8,
+    "min_separation_m": 3,
+    "geofence": { "min_x": -20, "max_x": 150, "min_y": -20, "max_y": 90 }
+  }
+}

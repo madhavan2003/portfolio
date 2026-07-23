@@ -1,0 +1,12 @@
+Example operator prompts for the multi-agent formation pipeline.
+Run any of these with:  python run.py --prompt "<prompt>"
+
+You three sweep this area in a wedge formation.
+
+Split this patrol route between the two of you and regroup at the end.
+
+Fly a tight line formation along the perimeter, three drones, stay close together.
+
+Two drones, column formation, follow the access road and loop it three times.
+
+You two take a wide wedge and sweep the north field at low altitude.
