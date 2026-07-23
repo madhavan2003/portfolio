@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+<!--
+  Self-contained Husky A200 + single Intel RealSense D435 RGB-D camera.
+
+  Design notes (see WRITEUP.md):
+    * Drive: gazebo_ros_planar_move. The four wheels are *passive, frictionless*
+      visual/collision bodies; the planar_move plugin moves base_footprint
+      kinematically from /cmd_vel and publishes wheel-free odom (odom->base_footprint).
+      A 4-wheel skid steer (gazebo_ros_diff_drive) on this base produces almost no
+      yaw in Gazebo Classic, so planar_move is used instead. Nav2's controller only
+      ever commands vx + wz, so the robot behaves exactly like a differential base.
+    * Sensor: EXACTLY ONE camera. A depth camera sensor (libgazebo_ros_openni_kinect)
+      publishes RGB, depth, camera_info (intrinsics) and an organized point cloud.
+      No LiDAR, no IMU consumed by nav, no GPS, no second camera.
+    * Camera is mounted LOW and FORWARD (as specified, "intentional") looking slightly
+      down so the ground/lane plane and the plant rows are both in view.
+-->
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="husky">
+
+  <xacro:property name="PI" value="3.14159265359"/>
+
+  <!-- ============ Chassis dimensions (Husky A200) ============ -->
+  <xacro:property name="base_x"       value="0.99"/>
+  <xacro:property name="base_y"       value="0.55"/>
+  <xacro:property name="base_z"       value="0.25"/>
+  <xacro:property name="wheel_radius" value="0.165"/>
+  <xacro:property name="wheel_width"  value="0.10"/>
+  <xacro:property name="wheel_xoff"   value="0.26"/>
+  <xacro:property name="wheel_yoff"   value="0.285"/>
+
+  <material name="husky_yellow"><color rgba="0.85 0.75 0.05 1.0"/></material>
+  <material name="husky_dark">  <color rgba="0.10 0.10 0.10 1.0"/></material>
+  <material name="rs_grey">     <color rgba="0.30 0.30 0.30 1.0"/></material>
+
+  <!-- ============ Footprint / base ============ -->
+  <link name="base_footprint"/>
+
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child  link="base_link"/>
+    <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${base_z/2 - 0.02}" rpy="0 0 0"/>
+      <geometry><box size="${base_x} ${base_y} ${base_z}"/></geometry>
+      <material name="husky_dark"/>
+    </visual>
+    <visual>
+      <!-- yellow lower bumper block, evokes the Husky look -->
+      <origin xyz="0.0 0 0.02" rpy="0 0 0"/>
+      <geometry><box size="${base_x*0.8} ${base_y*0.95} 0.12"/></geometry>
+      <material name="husky_yellow"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${base_z/2 - 0.02}" rpy="0 0 0"/>
+      <geometry><box size="${base_x} ${base_y} ${base_z}"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="33.0"/>
+      <origin xyz="0 0 ${base_z/2}" rpy="0 0 0"/>
+      <inertia ixx="1.5" ixy="0" ixz="0" iyy="2.5" iyz="0" izz="3.0"/>
+    </inertial>
+  </link>
+
+  <!-- ============ Passive frictionless wheels ============ -->
+  <xacro:macro name="wheel" params="name x y">
+    <link name="${name}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+        <material name="husky_dark"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="2.5"/>
+        <inertia ixx="0.02" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.03"/>
+      </inertial>
+    </link>
+    <!-- FIXED joints: wheels never actuated (planar_move drives the base),
+         so no joint_state_publisher is required. -->
+    <joint name="${name}_wheel_joint" type="fixed">
+      <parent link="base_link"/>
+      <child  link="${name}_wheel_link"/>
+      <origin xyz="${x} ${y} 0" rpy="0 0 0"/>
+    </joint>
+    <gazebo reference="${name}_wheel_link">
+      <mu1>0.0</mu1>
+      <mu2>0.0</mu2>
+      <material>Gazebo/Black</material>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:wheel name="front_left"  x="${wheel_xoff}"  y="${wheel_yoff}"/>
+  <xacro:wheel name="front_right" x="${wheel_xoff}"  y="${-wheel_yoff}"/>
+  <xacro:wheel name="rear_left"   x="${-wheel_xoff}" y="${wheel_yoff}"/>
+  <xacro:wheel name="rear_right"  x="${-wheel_xoff}" y="${-wheel_yoff}"/>
+
+  <gazebo reference="base_link"><material>Gazebo/FlatBlack</material></gazebo>
+
+  <!-- ============ Single RealSense D435, low & forward ============ -->
+  <!-- camera body link -->
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.025 0.090 0.025"/></geometry>
+      <material name="rs_grey"/>
+    </visual>
+    <inertial>
+      <mass value="0.072"/>
+      <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+    </inertial>
+  </link>
+
+  <!-- low, forward, pitched ~15 deg down -->
+  <joint name="camera_mount_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="camera_link"/>
+    <origin xyz="0.46 0 -0.005" rpy="0 0.26 0"/>
+  </joint>
+
+  <!-- optical frame: REP-103 (z forward, x right, y down) -->
+  <link name="camera_depth_optical_frame"/>
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child  link="camera_depth_optical_frame"/>
+    <origin xyz="0 0 0" rpy="${-PI/2} 0 ${-PI/2}"/>
+  </joint>
+
+  <!-- Gazebo depth-camera sensor: RGB + depth + camera_info + organized cloud.
+       ROS2 uses the unified gazebo_ros_camera plugin (auto-detects depth sensors). -->
+  <gazebo reference="camera_link">
+    <sensor type="depth" name="realsense_d435">
+      <always_on>true</always_on>
+      <update_rate>15.0</update_rate>
+      <visualize>false</visualize>
+      <camera name="realsense">
+        <!-- D435 depth FOV ~ 87 x 58 deg -->
+        <horizontal_fov>1.51843</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.10</near>
+          <far>10.0</far>
+        </clip>
+      </camera>
+      <plugin name="realsense_plugin" filename="libgazebo_ros_camera.so">
+        <!-- native topics (camera_name=camera, no namespace):
+               /camera/image_raw, /camera/camera_info,
+               /camera/depth/image_raw, /camera/depth/camera_info, /camera/points -->
+        <camera_name>camera</camera_name>
+        <frame_name>camera_depth_optical_frame</frame_name>
+        <hack_baseline>0.07</hack_baseline>
+        <min_depth>0.10</min_depth>
+        <max_depth>10.0</max_depth>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- ============ Planar-move drive (odom source) ============ -->
+  <gazebo>
+    <plugin name="planar_move_drive" filename="libgazebo_ros_planar_move.so">
+      <ros>
+        <namespace>/</namespace>
+        <remapping>cmd_vel:=cmd_vel</remapping>
+        <remapping>odom:=odom</remapping>
+      </ros>
+      <update_rate>50</update_rate>
+      <publish_rate>50</publish_rate>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
+      <covariance_x>0.0001</covariance_x>
+      <covariance_y>0.0001</covariance_y>
+      <covariance_yaw>0.001</covariance_yaw>
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>true</publish_odom_tf>
+    </plugin>
+  </gazebo>
+
+</robot>

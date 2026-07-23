@@ -1,0 +1,74 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Global Options:
+    Fixed Frame: map
+    Frame Rate: 20
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plan Cell Count: 30
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Show Names: true
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Enabled: true
+      Description Topic:
+        Value: /robot_description
+    - Class: rviz_default_plugins/Image
+      Name: CameraRGB
+      Enabled: true
+      Topic:
+        Value: /camera/image_raw
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Obstacles
+      Enabled: true
+      Topic:
+        Value: /farm/obstacles
+      Style: Boxes
+      Size (m): 0.05
+      Color: 255; 140; 0
+    - Class: rviz_default_plugins/MarkerArray
+      Name: LaneMarkers
+      Enabled: true
+      Topic:
+        Value: /lane/markers
+    - Class: rviz_default_plugins/MarkerArray
+      Name: PlantMarkers
+      Enabled: true
+      Topic:
+        Value: /farm/plant_markers
+    - Class: rviz_default_plugins/MarkerArray
+      Name: NavGoal
+      Enabled: true
+      Topic:
+        Value: /mission/route
+    - Class: rviz_default_plugins/Path
+      Name: PlannedPath
+      Enabled: true
+      Topic:
+        Value: /plan
+      Color: 25; 120; 255
+    - Class: rviz_default_plugins/Map
+      Name: GlobalCostmap
+      Enabled: true
+      Topic:
+        Value: /global_costmap/costmap
+      Color Scheme: costmap
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 22
+      Pitch: 1.0
+      Yaw: 3.1
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0

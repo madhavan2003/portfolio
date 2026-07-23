@@ -1,0 +1,1027 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+<world name="five_lane_farm_world">
+
+  <!-- =====================================================================
+       FIVE-LANE FARM WORLD
+       Robot reference: Clearpath Husky A200
+         length 0.99 m | width 0.67 m | height 0.39 m | track 0.555 m
+       Source: Clearpath Husky A200 User Manual, Table 2 (Key Specifications)
+
+       Design rule used below:
+         UNIFORM_LANE_WIDTH = 1.0 m   -> robot width (0.67 m) + 0.15 m clearance
+                                         per side. Husky can drive straight
+                                         through these lanes.
+         NARROW_LANE_WIDTH  = 0.4 m   -> less than the robot's 0.67 m width.
+                                         Husky physically cannot enter/exit
+                                         this lane (matches the "Narrow -
+                                         can't enter/exit" note in the sketch).
+
+       Layout along the Y axis (5 lanes separated/bordered by 6 plant beds):
+
+         bed0 | lane1 (1.0 m) | bed1 | lane2 (1.0 m) | bed2 |
+         lane3 (0.4 m, NARROW) | bed3 | lane4 (1.0 m) | bed4 |
+         lane5 (1.0 m) | bed5
+
+       All lanes and beds run the full 10 m length of the farm (X axis).
+       To change a lane's width, just edit its <size> Y value and re-center
+       the Y positions of everything to its right.
+       ===================================================================== -->
+
+  <!-- ============================ PLANT BEDS ============================ -->
+
+  <model name="plant_bed_0">
+    <static>true</static>
+    <link name="bed_link">
+      <pose>0 -3.75 0.05 0 0 0</pose>
+      <visual name="bed_visual">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.47 0.5 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="bed_collision">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <model name="plant_bed_1">
+    <static>true</static>
+    <link name="bed_link">
+      <pose>0 -1.95 0.05 0 0 -0.08</pose>
+      <visual name="bed_visual">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.5 0.6 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="bed_collision">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <model name="plant_bed_2">
+    <static>true</static>
+    <link name="bed_link">
+      <pose>0 -0.45 0.05 0 0 0</pose>
+      <visual name="bed_visual">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.57 0.6 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="bed_collision">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <model name="plant_bed_3">
+    <static>true</static>
+    <link name="bed_link">
+      <pose>0 0.45 0.05 0 0 0</pose>
+      <visual name="bed_visual">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.57 0.5 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="bed_collision">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <model name="plant_bed_4">
+    <static>true</static>
+    <link name="bed_link">
+      <pose>0 1.95 0.05 0 0 0</pose>
+      <visual name="bed_visual">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.5 0.5 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="bed_collision">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <model name="plant_bed_5">
+    <static>true</static>
+    <link name="bed_link">
+      <pose>0 3.45 0.05 0 0 0</pose>
+      <visual name="bed_visual">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.5 0.4 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="bed_collision">
+        <geometry><box><size>10.0 0.5 0.1</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <!-- ============================ LANES ============================
+       Brown = uniform-width lane, wide enough for the Husky A200 (1.0 m).
+       Red   = narrow lane, too tight for the Husky A200 (0.4 m).
+       ============================================================ -->
+
+  <model name="lane_1_uniform">
+    <static>true</static>
+    <link name="lane_link">
+      <pose>0 -2.7 0.01 0 0 0</pose>
+      <visual name="lane_visual">
+        <geometry><box><size>15.0 6.0 0.02</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.5 0.35 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="lane_collision">
+        <geometry><box><size>10.0 1.0 0.02</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <!-- reconstructed - not visible in source screenshots -->
+  <model name="lane_2_uniform">
+    <static>true</static>
+    <link name="lane_link">
+      <pose>0 -1.2 0.01 0 0 0</pose>
+      <visual name="lane_visual">
+        <geometry><box><size>15.0 1.0 0.02</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.5 0.35 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="lane_collision">
+        <geometry><box><size>10.0 1.0 0.02</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <!-- NARROW lane (red). reconstructed - not visible in source screenshots -->
+  <model name="lane_3_narrow">
+    <static>true</static>
+    <link name="lane_link">
+      <pose>0 0.0 0.01 0 0 0</pose>
+      <visual name="lane_visual">
+        <geometry><box><size>15.0 0.4 0.02</size></box></geometry>
+        <material>
+          <ambient>0.7 0.1 0.1 1</ambient>
+          <diffuse>0.7 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+      <collision name="lane_collision">
+        <geometry><box><size>10.0 0.4 0.02</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <!-- reconstructed - not visible in source screenshots -->
+  <model name="lane_4_uniform">
+    <static>true</static>
+    <link name="lane_link">
+      <pose>0 1.2 0.01 0 0 0</pose>
+      <visual name="lane_visual">
+        <geometry><box><size>15.0 1.0 0.02</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.5 0.35 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="lane_collision">
+        <geometry><box><size>10.0 1.0 0.02</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <model name="lane_5_uniform">
+    <static>true</static>
+    <link name="lane_link">
+      <pose>0 2.7 0.01 0 0 0</pose>
+      <visual name="lane_visual">
+        <geometry><box><size>15.0 5.0 0.02</size></box></geometry>
+        <material>
+          <ambient>0.5 0.35 0.2 1</ambient>
+          <diffuse>0.5 0.35 0.2 1</diffuse>
+        </material>
+      </visual>
+      <collision name="lane_collision">
+        <geometry><box><size>10.0 1.0 0.02</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <!-- =================== HUSKY A200 FOOTPRINT REFERENCE ===================
+       A flat, semi-transparent footprint (0.99 m x 0.67 m, the Husky's real
+       footprint) dropped at the entrance of lane_1. It is NOT a functioning
+       robot model, just a scale reference so you can visually confirm fit.
+       Delete this model, or replace it with an actual Husky model include,
+       once you spawn the real robot.
+       =================================================================== -->
+
+  <model name="husky_footprint_start_reference">
+    <static>true</static>
+    <link name="footprint_link">
+      <pose>5.8 -3.0 0.025 0 0 0</pose>
+      <visual name="footprint_visual">
+        <geometry><box><size>0.99 0.67 0.02</size></box></geometry>
+        <material>
+          <ambient>0.1 0.3 0.9 0.6</ambient>
+          <diffuse>0.1 0.3 0.9 0.6</diffuse>
+        </material>
+        <transparency>0.4</transparency>
+      </visual>
+    </link>
+  </model>
+
+  <model name="husky_footprint_end_reference">
+    <static>true</static>
+    <link name="footprint_link">
+      <pose>-5.8 2.7 0.025 0 0 0</pose>
+      <visual name="footprint_visual">
+        <geometry><box><size>0.99 0.67 0.02</size></box></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+        <transparency>0.4</transparency>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ============================ PLANTS IN BEDS ============================
+       Decorative plants (stem + foliage) spaced every 2 m along each bed.
+       Visual only (no collision) since beds are off-limits to the robot
+       anyway, the bed collision box already keeps it out.
+       ============================================================ -->
+
+  <model name="plant_bed_0_p0_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-4.0 -3.75 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_0_p0_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-4.0 -3.75 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_0_p2_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-2.0 -3.75 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_0_p2_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-2.0 -3.75 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_0_p4_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>0.0 -3.75 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_0_p4_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>0.0 -3.75 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_0_p6_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>2.0 -3.75 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_0_p6_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>2.0 -3.75 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_0_p8_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>4.0 -3.75 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_0_p8_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>4.0 -3.75 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p0_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-4.0 -0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p0_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-4.0 -0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p2_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-2.0 -0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p2_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-2.0 -0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p4_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>0.0 -0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p4_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>0.0 -0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p6_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>2.0 -0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p6_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>2.0 -0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p8_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>4.0 -0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_2_p8_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>4.0 -0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p0_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-4.0 0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p0_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-4.0 0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p2_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-2.0 0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p2_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-2.0 0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p4_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>0.0 0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p4_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>0.0 0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p6_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>2.0 0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p6_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>2.0 0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p8_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>4.0 0.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_3_p8_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>4.0 0.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p0_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-4.0 1.95 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p0_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-4.0 1.95 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p2_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-2.0 1.95 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p2_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-2.0 1.95 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p4_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>0.0 1.95 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p4_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>0.0 1.95 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p6_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>2.0 1.95 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p6_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>2.0 1.95 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p8_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>4.0 1.95 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_4_p8_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>4.0 1.95 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p0_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-4.0 3.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p0_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-4.0 3.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p2_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>-2.0 3.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p2_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>-2.0 3.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p4_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>0.0 3.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p4_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>0.0 3.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p6_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>2.0 3.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p6_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>2.0 3.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p8_stem">
+    <static>true</static>
+    <link name="stem_link">
+      <pose>4.0 3.45 0.225 0 0 0</pose>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.03</radius><length>0.25</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="plant_bed_5_p8_foliage">
+    <static>true</static>
+    <link name="foliage_link">
+      <pose>4.0 3.45 0.42 0 0 0</pose>
+      <visual name="foliage_visual">
+        <geometry><sphere><radius>0.12</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- ===================== FALLEN PLANT - BLOCKS A LANE =====================
+       A toppled plant lying across lane_5_uniform (y = 2.7), matching the
+       sketch's "plant fallen" note. The stem cylinder is rotated 90 deg
+       about X so it lies flat across the lane's 1.0 m width, with real
+       collision geometry so it actually obstructs the Husky in simulation.
+       Move it to a different lane by changing the y value, or to a
+       different point along the lane by changing the x value.
+       ===================================================================== -->
+
+  <model name="fallen_plant_lane5">
+    <static>true</static>
+    <link name="fallen_link">
+
+      <!-- toppled stem, lying across the lane -->
+      <pose>3.0 2.7 0.07 1.5708 0 0</pose>
+      <visual name="fallen_stem_visual">
+        <geometry><cylinder><radius>0.05</radius><length>0.9</length></cylinder></geometry>
+        <material>
+          <ambient>0.4 0.25 0.1 1</ambient>
+          <diffuse>0.4 0.25 0.1 1</diffuse>
+        </material>
+      </visual>
+      <collision name="fallen_stem_collision">
+        <geometry><cylinder><radius>0.05</radius><length>0.9</length></cylinder></geometry>
+      </collision>
+    </link>
+
+    <!-- foliage clump at one end of the fallen stem -->
+    <link name="fallen_foliage_link">
+      <pose>3.0 3.15 0.20 0 0 0</pose>
+      <visual name="fallen_foliage_visual">
+        <geometry><sphere><radius>0.18</radius></sphere></geometry>
+        <material>
+          <ambient>0.1 0.5 0.05 1</ambient>
+          <diffuse>0.1 0.5 0.05 1</diffuse>
+        </material>
+      </visual>
+      <collision name="fallen_foliage_collision">
+        <geometry><sphere><radius>0.18</radius></sphere></geometry>
+      </collision>
+    </link>
+  </model>
+
+  <!-- ==== injected for ROS2 sim: lighting, floor, entity-state service ==== -->
+  <include><uri>model://sun</uri></include>
+  <include><uri>model://ground_plane</uri></include>
+
+  <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+    <ros>
+      <namespace>/gazebo</namespace>
+    </ros>
+    <update_rate>2.0</update_rate>
+  </plugin>
+
+</world>
+</sdf>
