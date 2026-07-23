@@ -1,0 +1,24 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.gui.yml — override to show the Gazebo GUI on the host display.
+#
+# Usage (Linux host, X11):
+#   xhost +local:docker
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.gui.yml up
+#
+# This mounts the host's X11 socket into px4-sitl and unsets HEADLESS, which
+# makes px4-rc.gzsim additionally launch `gz sim -g` (the GUI client) — the
+# physics/MAVLink server starts the same way either way. Only px4-sitl needs
+# X11; the pipeline container never touches a display.
+#
+# `xhost +local:docker` grants any local Docker container access to your X
+# server — fine for a one-off local demo, but don't leave it on a shared or
+# untrusted machine. Run `xhost -local:docker` afterward to revoke it.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  px4-sitl:
+    environment:
+      - HEADLESS=
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw

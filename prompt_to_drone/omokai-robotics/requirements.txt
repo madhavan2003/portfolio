@@ -1,0 +1,20 @@
+# ── Core schema & validation ──────────────────────────────────────────────────
+pydantic==2.9.2           # data validation, schema export (>=2.9 required by ollama==0.6.2)
+pydantic-settings==2.3.4  # env-var config loading
+
+# ── LLM client ─────────────────────────────────────────────────────────────────
+ollama==0.6.2             # client for a locally-running Ollama server (no API key/cost)
+
+# ── Simulator control ─────────────────────────────────────────────────────────
+mavsdk==3.10.2            # Python wrapper for MAVSDK (already installed system-wide)
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
+click==8.1.7              # command-line interface
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest==8.2.2
+pytest-asyncio==0.23.7
+pytest-mock==3.14.0
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+rich==13.7.1              # pretty terminal output for the CLI audit log

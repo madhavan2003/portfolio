@@ -1,0 +1,88 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Dockerfile.px4
+# Builds PX4 SITL (gz_x500 target) + Gazebo Harmonic from source.
+#
+# Base:            ubuntu:22.04, pinned by content digest (see FROM line)
+# PX4-Autopilot:   pinned to a single commit SHA (see PX4_COMMIT arg below) —
+#                  this is the exact commit this project was developed and
+#                  the speed-bug fix was verified against
+#                  (tag: v1.17.0-alpha1-117-ge0137fe7a7)
+# Gazebo:          Harmonic (gz-sim 8.x), installed via PX4's own
+#                  Tools/setup/ubuntu.sh, which adds the OSRF apt repo and
+#                  installs the `gz-harmonic` metapackage. We pin the exact
+#                  package version we tested against (1.0.0-1~jammy /
+#                  gz-sim 8.14.0). NOTE: OSRF's apt repo does not guarantee
+#                  indefinite retention of old package versions, so this pin
+#                  is best-effort — if it 404s in the future, drop the "="
+#                  version suffix on the gz-harmonic line below to fall back
+#                  to whatever OSRF currently serves for jammy.
+#
+# This image contains the FULL PX4-Autopilot source tree (SITL needs the
+# ROMFS init scripts, airframe configs, and world/model SDF files at
+# runtime — not just the compiled binary) plus a prebuilt
+# build/px4_sitl_default directory, so `docker compose up` only has to
+# relink (near-instant), never recompile from scratch.
+# ─────────────────────────────────────────────────────────────────────────────
+FROM ubuntu:22.04@sha256:0e0a0fc6d18feda9db1590da249ac93e8d5abfea8f4c3c0c849ce512b5ef8982
+
+ARG PX4_COMMIT=e0137fe7a7a1be179db7d04b8703ef77c71a656e
+ARG GZ_HARMONIC_VERSION=1.0.0-1~jammy
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    RUNS_IN_DOCKER=true \
+    TZ=UTC
+
+# ── Minimal bootstrap: just enough to clone the pinned commit ───────────────
+# Tools/setup/ubuntu.sh (run below) installs everything else — compilers,
+# cmake/ninja, Gazebo Harmonic, Python build deps — it is PX4's own,
+# upstream-maintained dependency list, so we defer to it rather than
+# hand-rolling a second, divergent list here.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        git \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Clone PX4-Autopilot at the exact pinned commit (shallow, no history) ────
+WORKDIR /opt/PX4-Autopilot
+RUN git init -q . \
+    && git remote add origin https://github.com/PX4/PX4-Autopilot.git \
+    && git fetch --depth 1 origin "${PX4_COMMIT}" \
+    && git checkout -q FETCH_HEAD \
+    && git submodule update --init --recursive --depth 1
+
+# ── Install PX4's own host dependencies ──────────────────────────────────────
+# --no-nuttx: we only ever build the SITL (gz_x500) target, never firmware
+# for real flight controllers, so the arm-none-eabi toolchain is pure
+# dead weight (and a slow download) in this image.
+RUN ./Tools/setup/ubuntu.sh --no-nuttx
+
+# Pin the Gazebo Harmonic version we developed and tested against (best
+# effort — see header comment). Runs after ubuntu.sh has already added the
+# OSRF apt repo and installed the unpinned version.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends --allow-downgrades \
+        gz-harmonic=${GZ_HARMONIC_VERSION} \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Compile the SITL target ─────────────────────────────────────────────────
+# `make px4_sitl_default` is a BUILD-ONLY target (no model argument): it
+# compiles the px4 binary and every module, including gz_bridge, but never
+# launches a simulator. This is what makes it safe to run during `docker
+# build` with no display and no network beyond apt/git.
+# The model-specific `make px4_sitl gz_x500` (run at container start, see
+# CMD) reuses these artifacts and just relinks / launches — no recompile.
+RUN make px4_sitl_default -j"$(nproc)"
+
+# ── Runtime ───────────────────────────────────────────────────────────────
+# MAVLink: 14540/udp (offboard/companion — MAVSDK connects here),
+#          14550/udp (GCS, e.g. QGroundControl), 14580/udp (PX4's own local end).
+EXPOSE 14540/udp 14550/udp 14580/udp
+
+ENV HEADLESS=1
+
+# `make px4_sitl gz_x500` both ensures the build is current (near-instant,
+# already compiled above) and launches PX4 + Gazebo. HEADLESS=1 (set above,
+# overridable from docker-compose.yml) skips the `gz sim -g` GUI client —
+# the physics/MAVLink server (`gz sim ... -s`) always starts regardless,
+# so headless mode needs no X11/display at all.
+CMD ["bash", "-c", "exec make px4_sitl gz_x500"]

@@ -1,0 +1,105 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml
+#
+# Services:
+#   px4-sitl   — PX4 SITL + Gazebo Harmonic (gz_x500), headless by default
+#   pipeline   — Python pipeline (planner → validator → executor)
+#
+# Usage (headless, no display needed — the default):
+#   docker compose -f docker/docker-compose.yml up
+#
+# Usage (with GUI, requires X11 forwarding — see docker-compose.gui.yml):
+#   xhost +local:docker
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.gui.yml up
+#
+# Networking note:
+#   PX4 SITL's MAVLink instance sends to a hardcoded 127.0.0.1:14540 by
+#   default (see ROMFS/px4fmu_common/init.d-posix/px4-rc.mavlink) — it does
+#   NOT send to whatever hostname/IP the companion computer happens to have.
+#   On a normal Docker bridge network, two separate containers each have
+#   their own loopback, so `pipeline` would never see PX4's packets even
+#   though both containers "can see" each other by service name. We solve
+#   this the same way most PX4-in-Docker setups do: `pipeline` joins
+#   `px4-sitl`'s network namespace directly (`network_mode: service:px4-sitl`),
+#   so "127.0.0.1:14540" means the same loopback interface for both.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── PX4 SITL + Gazebo Harmonic ──────────────────────────────────────────────
+  px4-sitl:
+    build:
+      context: .
+      dockerfile: Dockerfile.px4
+    container_name: omokai_px4_sitl
+    environment:
+      # Headless: no GUI client, no display required (this is the default
+      # baked into the image too; set to empty/unset here to show the GUI —
+      # see docker-compose.gui.yml for the full override).
+      - HEADLESS=${HEADLESS:-1}
+      - PX4_HOME_LAT=47.397742
+      - PX4_HOME_LON=8.545594
+      - PX4_HOME_ALT=488.0
+    ports:
+      - "14540:14540/udp"
+      - "14550:14550/udp"
+    restart: "no"
+    # Keep stdin open (no data, no tty): PX4's `pxh>` shell reads from stdin
+    # via readline, and if stdin is closed (Docker's default with no tty
+    # attached) each read immediately returns EOF, which readline treats as
+    # "try again" — spinning at ~50% CPU and writing gigabytes of prompt
+    # redraws per minute of uptime. An open-but-empty stdin makes reads
+    # block instead, so the shell just waits quietly for input that never
+    # comes.
+    stdin_open: true
+    # host.docker.internal → host gateway. This has to live here, not on
+    # `pipeline`: Docker rejects `extra_hosts` combined with
+    # `network_mode: service:...` ("conflicting options: custom host-to-IP
+    # mapping and the network mode") — the mapping must be set on whichever
+    # container actually owns the network namespace. `pipeline` joins this
+    # namespace, so it inherits the mapping from here rather than declaring
+    # its own. Needed so `pipeline` can reach Ollama running on the host.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      # Mirrors the same readiness check PX4's own px4-rc.gzsim startup
+      # script uses internally: the world's /clock topic only exists once
+      # Gazebo has actually loaded the world and PX4 is bridged to it.
+      test: ["CMD-SHELL", "gz topic -l 2>/dev/null | grep -q '/clock'"]
+      interval: 3s
+      timeout: 5s
+      retries: 60
+      start_period: 15s
+
+  # ── Python Pipeline Service ─────────────────────────────────────────────────
+  pipeline:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: omokai_pipeline
+    depends_on:
+      px4-sitl:
+        condition: service_healthy
+    # Share px4-sitl's network namespace — see the networking note above.
+    # (No `ports:` here: a container sharing another's netns can't publish
+    # its own.)
+    network_mode: "service:px4-sitl"
+    environment:
+      # Ollama runs on the HOST (outside Docker), not as a compose service —
+      # host.docker.internal + extra_hosts below is how the container reaches
+      # it. Override OLLAMA_HOST/OLLAMA_MODEL to point at a different server
+      # or model. Neither is a secret — no .env / API key needed for this path.
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.1}
+    volumes:
+      # Mount missions/ and logs/ so outputs are visible on the host.
+      - ../missions:/app/missions
+      - ../logs:/app/logs
+    # Interactive by default so you can run the CLI.
+    stdin_open: true
+    tty: true
+    command: >
+      python3 src/main.py
+        --prompt "Patrol the perimeter loop twice at 15 metres"
+        --mock-llm
+        --connection-url udp://:14540
